@@ -1,0 +1,23 @@
+# Dockerfile.arm64
+
+# Use a Rust cross-compilation base image for ARM64
+FROM messense/rust-musl-cross:aarch64-musl AS builder
+
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Build statically-linked ARM64 binary
+RUN cargo build --release --target aarch64-unknown-linux-musl
+
+# Final runtime image (tiny Alpine)
+FROM alpine:latest
+WORKDIR /app
+
+# Copy compiled binary from builder
+COPY --from=builder /app/target/aarch64-unknown-linux-musl/release/rustifi .
+
+# Run it
+ENTRYPOINT ["./rustifi"]
+
