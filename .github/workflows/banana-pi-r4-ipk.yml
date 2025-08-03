@@ -1,0 +1,55 @@
+name: Build rustifi IPK for Banana Pi R4
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-ipk:
+    runs-on: ubuntu-latest
+
+    env:
+      SDK_URL: https://downloads.openwrt.org/releases/23.05.3/targets/mediatek/filogic/openwrt-sdk-23.05.3-mediatek-filogic_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+      SDK_FOLDER: openwrt-sdk-23.05.3-mediatek-filogic_gcc-12.3.0_musl
+
+    steps:
+      - name: Checkout rustifi
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev gawk unzip wget file python3
+
+      - name: Download OpenWrt SDK for Banana Pi R4
+        run: |
+          wget $SDK_URL
+          tar -xf $(basename $SDK_URL)
+
+      - name: Copy rustifi package into SDK
+        run: |
+          mkdir -p $SDK_FOLDER/package/rustifi
+          rsync -a --exclude="$SDK_FOLDER" ./ "$SDK_FOLDER/package/rustifi/"
+
+      - name: Enable rustifi in .config
+        run: |
+          echo "CONFIG_PACKAGE_rustifi=m" > $SDK_FOLDER/.config
+
+      - name: Run make defconfig
+        run: |
+          cd $SDK_FOLDER
+          make prepare
+
+      - name: Compile rustifi package
+        run: |
+          cd $SDK_FOLDER
+          make package/rustifi/compile V=s      
+
+      - name: Archive IPK output
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustifi-ipk
+          path: |
+            ${{ env.SDK_FOLDER }}/bin/packages/*/rustifi/*.ipk
+
