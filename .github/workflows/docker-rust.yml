@@ -1,0 +1,24 @@
+# .github/workflows/docker-rust.yml
+name: Docker Rust Build & Run
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker image
+      run: docker build -t rustifi .
+
+    - name: Run Docker container
+      run: docker run --rm rustifi
+
