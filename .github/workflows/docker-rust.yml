@@ -1,5 +1,5 @@
 # .github/workflows/docker-rust.yml
-name: Docker Rust Build & Run
+name: 🐳 Build & Run Statically-Linked x86_64 MUSL Binary
 
 on:
   push:

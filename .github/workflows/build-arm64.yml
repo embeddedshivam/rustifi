@@ -1,0 +1,45 @@
+name: 🚀 Rust Build for ARM64 (aarch64-unknown-linux-musl)
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-arm64:
+    name: 🔧 Build ARM64 Binary (musl)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Set Up Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-unknown-linux-musl
+          override: true
+
+      - name: 🧰 Install Cross Compiler & Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu
+
+      - name: ⚙️ Configure Cargo for Cross Compilation
+        run: |
+          mkdir -p .cargo
+          cat > .cargo/config.toml <<EOF
+          [target.aarch64-unknown-linux-musl]
+          linker = "aarch64-linux-gnu-gcc"
+          EOF
+
+      - name: 📦 Build Release Binary
+        run: |
+          cargo build --release --target aarch64-unknown-linux-musl
+
+      - name: 📤 Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustifi-aarch64
+          path: target/aarch64-unknown-linux-musl/release/rustifi
+
